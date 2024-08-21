@@ -20,15 +20,15 @@ import org.springframework.beans.BeansException;
 
 /**
  * Factory hook that allows for custom modification of an application context's
- * bean definitions, adapting the bean property values of the context's underlying
- * bean factory.
+ * bean definitions(定义), adapting(调整) the bean property values of the context's
+ * underlying(底层) bean factory.
  *
- * <p>Useful for custom config files targeted at system administrators that
+ * <p>Useful(有用) for custom config files targeted at system administrators(管理员) that
  * override bean properties configured in the application context. See
- * {@link PropertyResourceConfigurer} and its concrete implementations for
- * out-of-the-box solutions that address such configuration needs.
+ * {@link PropertyResourceConfigurer} and its concrete(具体) implementations for
+ * out-of-the-box solutions(开箱即用的解决方案) that address(解决) such configuration needs(需求).
  *
- * <p>A {@code BeanFactoryPostProcessor} may interact with and modify bean
+ * <p>A {@link BeanFactoryPostProcessor} may interact with and modify bean
  * definitions, but never bean instances. Doing so may cause premature bean
  * instantiation, violating the container and causing unintended side effects.
  * If bean instance interaction is required, consider implementing

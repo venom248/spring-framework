@@ -245,9 +245,9 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 
 
 	/**
-	 * Perform a scan within the specified base packages.
-	 * @param basePackages the packages to check for annotated classes
-	 * @return number of beans registered
+	 * 在指定包内执行扫描。
+	 * @param basePackages 要扫描的包
+	 * @return 注册的 bean 数量
 	 */
 	public int scan(String... basePackages) {
 		int beanCountAtScanStart = this.registry.getBeanDefinitionCount();
@@ -263,12 +263,10 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	}
 
 	/**
-	 * Perform a scan within the specified base packages,
-	 * returning the registered bean definitions.
-	 * <p>This method does <i>not</i> register an annotation config processor
-	 * but rather leaves this up to the caller.
-	 * @param basePackages the packages to check for annotated classes
-	 * @return set of beans registered if any for tooling registration purposes (never {@code null})
+	 * 在指定包下扫描，返回已注册的 bean-definitions。
+	 * <p>此方法不会注册注解配置处理器，而是留给调用者处理。
+	 * @param basePackages 要扫描注解类的包
+	 * @return 用于工具注册目的的已注册 bean 定义集合（永不为 null）
 	 */
 	protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
 		Assert.notEmpty(basePackages, "At least one base package must be specified");

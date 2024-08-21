@@ -752,13 +752,11 @@ class ConstructorResolver {
 				if (valueHolder.isConverted()) {
 					convertedValue = valueHolder.getConvertedValue();
 					args.preparedArguments[paramIndex] = convertedValue;
-				}
-				else {
+				} else {
 					MethodParameter methodParam = MethodParameter.forExecutable(executable, paramIndex);
 					try {
 						convertedValue = converter.convertIfNecessary(originalValue, paramType, methodParam);
-					}
-					catch (TypeMismatchException ex) {
+					} catch (TypeMismatchException ex) {
 						throw new UnsatisfiedDependencyException(
 								mbd.getResourceDescription(), beanName, new InjectionPoint(methodParam),
 								"Could not convert argument value of type [" +
@@ -774,8 +772,7 @@ class ConstructorResolver {
 				}
 				args.arguments[paramIndex] = convertedValue;
 				args.rawArguments[paramIndex] = originalValue;
-			}
-			else {
+			} else {
 				MethodParameter methodParam = MethodParameter.forExecutable(executable, paramIndex);
 				// No explicit match found: we're either supposed to autowire or
 				// have to fail creating an argument array for the given constructor.
@@ -798,8 +795,7 @@ class ConstructorResolver {
 					args.arguments[paramIndex] = arg;
 					args.preparedArguments[paramIndex] = desc;
 					args.resolveNecessary = true;
-				}
-				catch (BeansException ex) {
+				} catch (BeansException ex) {
 					throw new UnsatisfiedDependencyException(
 							mbd.getResourceDescription(), beanName, new InjectionPoint(methodParam), ex);
 				}

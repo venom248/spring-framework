@@ -29,29 +29,25 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * Standalone application context, accepting <em>component classes</em> as input &mdash;
- * in particular {@link Configuration @Configuration}-annotated classes, but also plain
- * {@link org.springframework.stereotype.Component @Component} types and JSR-330 compliant
- * classes using {@code jakarta.inject} annotations.
+ * 独立的应用上下文，接受 <em>组件类</em> 作为输入 —— 特别是使用 {@link Configuration @Configuration} 注解的类，
+ * 但也包括普通的 {@link org.springframework.stereotype.Component @Component} 类型
+ * 和使用 {@code jakarta.inject} 注解的 JSR-330 兼容类。
  *
- * <p>Allows for registering classes one by one using {@link #register(Class...)}
- * as well as for classpath scanning using {@link #scan(String...)}.
+ * <p>允许使用 {@link #register(Class...)} 一个一个地注册类，也可以使用 {@link #scan(String...)} 进行类路径扫描。
  *
- * <p>In case of multiple {@code @Configuration} classes, {@link Bean @Bean} methods
- * defined in later classes will override those defined in earlier classes. This can
- * be leveraged to deliberately override certain bean definitions via an extra
- * {@code @Configuration} class.
+ * <p>在多个 {@code @Configuration} 类的情况下，后面类中定义的 {@link Bean @Bean} 方法将覆盖前面类中定义的方法。
+ * 这可以通过一个额外的 {@code @Configuration} 类来有意地覆盖某些bean定义。
  *
- * <p>See {@link Configuration @Configuration}'s javadoc for usage examples.
+ * <p>有关使用示例，请参见 {@link Configuration @Configuration} 的javadoc。
  *
  * @author Juergen Hoeller
  * @author Chris Beams
  * @since 3.0
- * @see #register
- * @see #scan
- * @see AnnotatedBeanDefinitionReader
- * @see ClassPathBeanDefinitionScanner
- * @see org.springframework.context.support.GenericXmlApplicationContext
+ * @see #register 用于注册一个或多个组件类
+ * @see #scan 用于扫描类路径
+ * @see AnnotatedBeanDefinitionReader 用于读取注解并注册Bean
+ * @see ClassPathBeanDefinitionScanner 用于扫描类路径并注册Bean
+ * @see org.springframework.context.support.GenericXmlApplicationContext 用于从 XML 文件中加载上下文
  */
 public class AnnotationConfigApplicationContext extends GenericApplicationContext implements AnnotationConfigRegistry {
 
@@ -61,31 +57,38 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 
 
 	/**
-	 * Create a new AnnotationConfigApplicationContext that needs to be populated
-	 * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
+	 * 创建一个需要填充的新 AnnotationConfigApplicationContext
+	 * 通过 {@link #register} 调用，然后手动 {@linkplain #refresh 刷新}。
 	 */
 	public AnnotationConfigApplicationContext() {
+		// 启动一个性能监控步骤，标记为: spring.context.annotated-bean-reader.create
+		// `StartupStep` 是 Spring 中用于性能监控的一个类，这一步开始跟踪 AnnotatedBeanDefinitionReader 的创建过程
 		StartupStep createAnnotatedBeanDefReader = getApplicationStartup().start("spring.context.annotated-bean-reader.create");
+		// 创建一个 AnnotatedBeanDefinitionReader 实例
+		// AnnotatedBeanDefinitionReader 是一个用于读取注解并注入到应用上下文中的 BeanDefinition 的类
+		// 这里将自身作为 BeanDefinitionRegistry 传入
 		this.reader = new AnnotatedBeanDefinitionReader(this);
+		// 结束性能监控步骤
 		createAnnotatedBeanDefReader.end();
+		// 创建一个`ClassPathBeanDefinitionScanner`实例
+		// `ClassPathBeanDefinitionScanner` 是一个用于扫描类路径并将扫描到的类注册到应用上下文中的类
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
 
 	/**
-	 * Create a new AnnotationConfigApplicationContext with the given DefaultListableBeanFactory.
-	 * @param beanFactory the DefaultListableBeanFactory instance to use for this context
+	 * 创建一个新的 AnnotationConfigApplicationContext，使用给定的 DefaultListableBeanFactory。
+	 * @param beanFactory 用于此上下文的 DefaultListableBeanFactory 实例
 	 */
 	public AnnotationConfigApplicationContext(DefaultListableBeanFactory beanFactory) {
+		// 将传入的 DefaultListableBeanFactory 传递给父类 GenericApplicationContext
 		super(beanFactory);
 		this.reader = new AnnotatedBeanDefinitionReader(this);
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
 
 	/**
-	 * Create a new AnnotationConfigApplicationContext, deriving bean definitions
-	 * from the given component classes and automatically refreshing the context.
-	 * @param componentClasses one or more component classes &mdash; for example,
-	 * {@link Configuration @Configuration} classes
+	 * 创建一个新的 AnnotationConfigApplicationContext，从给定的组件类派生 bean-definition，并自动刷新上下文。
+	 * @param componentClasses 一个或多个组件类，例如 {@link Configuration @Configuration} 类
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
 		this();
@@ -94,10 +97,8 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	}
 
 	/**
-	 * Create a new AnnotationConfigApplicationContext, scanning for components
-	 * in the given packages, registering bean definitions for those components,
-	 * and automatically refreshing the context.
-	 * @param basePackages the packages to scan for component classes
+	 * 创建一个新的 AnnotationConfigApplicationContext，扫描给定包中的组件，为这些组件注册 bean-definition，并自动刷新上下文。
+	 * @param basePackages 要扫描组件类的包
 	 */
 	public AnnotationConfigApplicationContext(String... basePackages) {
 		this();
@@ -148,15 +149,13 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 
 
 	//---------------------------------------------------------------------
-	// Implementation of AnnotationConfigRegistry
+	// AnnotationConfigRegistry 的实现
 	//---------------------------------------------------------------------
 
 	/**
-	 * Register one or more component classes to be processed.
-	 * <p>Note that {@link #refresh()} must be called in order for the context
-	 * to fully process the new classes.
-	 * @param componentClasses one or more component classes &mdash; for example,
-	 * {@link Configuration @Configuration} classes
+	 * 注册一个或多个需要处理的 component
+	 * <p>注意，必须调用 {@link #refresh()} 才能使上下文完全处理新类。
+	 * @param componentClasses 一个或多个 component，例如 {@link Configuration @Configuration} 类
 	 * @see #scan(String...)
 	 * @see #refresh()
 	 */
@@ -170,10 +169,9 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	}
 
 	/**
-	 * Perform a scan within the specified base packages.
-	 * <p>Note that {@link #refresh()} must be called in order for the context
-	 * to fully process the new classes.
-	 * @param basePackages the packages to scan for component classes
+	 * 在指定的基础包内执行扫描。
+	 * <p>注意，必须调用 {@link #refresh()} 才能使上下文完全处理新类。
+	 * @param basePackages 要扫描组件类的包
 	 * @see #register(Class...)
 	 * @see #refresh()
 	 */

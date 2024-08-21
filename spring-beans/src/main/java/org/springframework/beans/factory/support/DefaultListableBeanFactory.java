@@ -16,62 +16,11 @@
 
 package org.springframework.beans.factory.support;
 
-import java.io.IOException;
-import java.io.NotSerializableException;
-import java.io.ObjectInputStream;
-import java.io.ObjectStreamException;
-import java.io.Serial;
-import java.io.Serializable;
-import java.lang.annotation.Annotation;
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
-
 import jakarta.inject.Provider;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.TypeConverter;
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.BeanCurrentlyInCreationException;
-import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
-import org.springframework.beans.factory.CannotLoadBeanClassException;
-import org.springframework.beans.factory.InjectionPoint;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
-import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.SmartFactoryBean;
-import org.springframework.beans.factory.SmartInitializingSingleton;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.config.DependencyDescriptor;
-import org.springframework.beans.factory.config.NamedBeanHolder;
+import org.springframework.beans.factory.*;
+import org.springframework.beans.factory.config.*;
 import org.springframework.core.NamedThreadLocal;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.Ordered;
@@ -83,13 +32,22 @@ import org.springframework.core.log.LogMessage;
 import org.springframework.core.metrics.StartupStep;
 import org.springframework.lang.Contract;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.CompositeIterator;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.util.*;
+
+import java.io.*;
+import java.lang.annotation.Annotation;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * Spring's default implementation of the {@link ConfigurableListableBeanFactory}
@@ -518,13 +476,11 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		BeanFactory parent = getParentBeanFactory();
 		if (parent instanceof DefaultListableBeanFactory dlfb) {
 			return dlfb.resolveBean(requiredType, args, nonUniqueAsNull);
-		}
-		else if (parent != null) {
+		} else if (parent != null) {
 			ObjectProvider<T> parentProvider = parent.getBeanProvider(requiredType);
 			if (args != null) {
 				return parentProvider.getObject(args);
-			}
-			else {
+			} else {
 				return (nonUniqueAsNull ? parentProvider.getIfUnique() : parentProvider.getIfAvailable());
 			}
 		}
@@ -1011,16 +967,16 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			logger.trace("Pre-instantiating singletons in " + this);
 		}
 
-		// Iterate over a copy to allow for init methods which in turn register new bean definitions.
-		// While this may not be part of the regular factory bootstrap, it does otherwise work fine.
+		// this.beanDefinitionNames 保存了所有的 beanNames
 		List<String> beanNames = new ArrayList<>(this.beanDefinitionNames);
 
-		// Trigger initialization of all non-lazy singleton beans...
 		List<CompletableFuture<?>> futures = new ArrayList<>();
 		this.preInstantiationThread.set(PreInstantiation.MAIN);
 		try {
 			for (String beanName : beanNames) {
+				// 合并父 Bean 中的配置，这里涉及到 bean 的继承
 				RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
+				// 处理非抽象，非懒加载的单例 Bean
 				if (!mbd.isAbstract() && mbd.isSingleton()) {
 					CompletableFuture<?> future = preInstantiateSingleton(beanName, mbd);
 					if (future != null) {
@@ -1028,20 +984,19 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 					}
 				}
 			}
-		}
-		finally {
+		} finally {
 			this.preInstantiationThread.remove();
 		}
 		if (!futures.isEmpty()) {
 			try {
 				CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join();
-			}
-			catch (CompletionException ex) {
+			} catch (CompletionException ex) {
 				ReflectionUtils.rethrowRuntimeException(ex.getCause());
 			}
 		}
 
-		// Trigger post-initialization callback for all applicable beans...
+		// 到这里说明所有的非懒加载的 singleton beans 已经完成了初始化
+		// 如果定义的 bean 是实现了 SmartInitializingSingleton 接口的，那么在这里得到回调
 		for (String beanName : beanNames) {
 			Object singletonInstance = getSingleton(beanName, false);
 			if (singletonInstance instanceof SmartInitializingSingleton smartSingleton) {
@@ -1055,6 +1010,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	@Nullable
 	private CompletableFuture<?> preInstantiateSingleton(String beanName, RootBeanDefinition mbd) {
+		// 是否是后台初始化(默认不在后台初始化)
 		if (mbd.isBackgroundInit()) {
 			Executor executor = getBootstrapExecutor();
 			if (executor != null) {
@@ -1064,24 +1020,22 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 						getBean(dep);
 					}
 				}
-				CompletableFuture<?> future = CompletableFuture.runAsync(
-						() -> instantiateSingletonInBackgroundThread(beanName), executor);
+				CompletableFuture<?> future = CompletableFuture.runAsync(() ->
+						instantiateSingletonInBackgroundThread(beanName), executor);
 				addSingletonFactory(beanName, () -> {
 					try {
 						future.join();
-					}
-					catch (CompletionException ex) {
+					} catch (CompletionException ex) {
 						ReflectionUtils.rethrowRuntimeException(ex.getCause());
 					}
 					return future;  // not to be exposed, just to lead to ClassCastException in case of mismatch
 				});
 				return (!mbd.isLazyInit() ? future : null);
-			}
-			else if (logger.isInfoEnabled()) {
-				logger.info("Bean '" + beanName + "' marked for background initialization " +
-						"without bootstrap executor configured - falling back to mainline initialization");
+			} else if (logger.isInfoEnabled()) {
+				logger.info("Bean '" + beanName + "' marked for background initialization " + "without bootstrap executor configured - falling back to mainline initialization");
 			}
 		}
+		// 是否懒加载
 		if (!mbd.isLazyInit()) {
 			instantiateSingleton(beanName);
 		}
@@ -1092,14 +1046,12 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		this.preInstantiationThread.set(PreInstantiation.BACKGROUND);
 		try {
 			instantiateSingleton(beanName);
-		}
-		catch (RuntimeException | Error ex) {
+		} catch (RuntimeException | Error ex) {
 			if (logger.isWarnEnabled()) {
 				logger.warn("Failed to instantiate singleton bean '" + beanName + "' in background thread", ex);
 			}
 			throw ex;
-		}
-		finally {
+		} finally {
 			this.preInstantiationThread.remove();
 		}
 	}
@@ -1110,8 +1062,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			if (bean instanceof SmartFactoryBean<?> smartFactoryBean && smartFactoryBean.isEagerInit()) {
 				getBean(beanName);
 			}
-		}
-		else {
+		} else {
 			getBean(beanName);
 		}
 	}
@@ -1125,49 +1076,61 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	public void registerBeanDefinition(String beanName, BeanDefinition beanDefinition)
 			throws BeanDefinitionStoreException {
 
+		// logger.info("Register >>>>: " + beanName);
+		System.out.println("Register >>>>: " + beanName);
+
 		Assert.hasText(beanName, "Bean name must not be empty");
 		Assert.notNull(beanDefinition, "BeanDefinition must not be null");
 
+		// 如果 beanDefinition 是 AbstractBeanDefinition 的实例，进行验证
 		if (beanDefinition instanceof AbstractBeanDefinition abd) {
 			try {
 				abd.validate();
-			}
-			catch (BeanDefinitionValidationException ex) {
+			} catch (BeanDefinitionValidationException ex) {
 				throw new BeanDefinitionStoreException(beanDefinition.getResourceDescription(), beanName,
 						"Validation of bean definition failed", ex);
 			}
 		}
 
+		// 获取现有的 BeanDefinition
 		BeanDefinition existingDefinition = this.beanDefinitionMap.get(beanName);
 		if (existingDefinition != null) {
+			// 判断现有的 BeanDefinition 是否允许覆盖
 			if (!isBeanDefinitionOverridable(beanName)) {
+				// 如果不允许覆盖，则抛出 BeanDefinitionOverrideException 异常
 				throw new BeanDefinitionOverrideException(beanName, beanDefinition, existingDefinition);
-			}
-			else {
+			} else {
+				// 如果允许覆盖，则记录日志
 				logBeanDefinitionOverriding(beanName, beanDefinition, existingDefinition);
 			}
+			// 如果允许覆盖，则替换现有的 bean 定义
 			this.beanDefinitionMap.put(beanName, beanDefinition);
-		}
-		else {
+		} else {
+			// 如果不存在现有的 bean 定义，则直接注册
+			// 检查是否是别名
 			if (isAlias(beanName)) {
+				// 如果是别名，则获取别名的规范名称
 				String aliasedName = canonicalName(beanName);
+				// 判断别名是否允许覆盖
 				if (!isBeanDefinitionOverridable(aliasedName)) {
-					if (containsBeanDefinition(aliasedName)) {  // alias for existing bean definition
+					if (containsBeanDefinition(aliasedName)) {
+						// 如果别名已经存在，则抛出 BeanDefinitionOverrideException 异常
 						throw new BeanDefinitionOverrideException(
 								beanName, beanDefinition, getBeanDefinition(aliasedName));
-					}
-					else {  // alias pointing to non-existing bean definition
+					} else {
+						// 如果别名不存在，则抛出 BeanDefinitionStoreException 异常
 						throw new BeanDefinitionStoreException(beanDefinition.getResourceDescription(), beanName,
 								"Cannot register bean definition for bean '" + beanName +
 								"' since there is already an alias for bean '" + aliasedName + "' bound.");
 					}
-				}
-				else {
+				} else {
+					// 如果别名允许覆盖，直接移除
 					removeAlias(beanName);
 				}
 			}
+			// 检查此 bean factory 是否已经开始创建 bean，即在此期间是否有任何 bean 被标记为已创建。
 			if (hasBeanCreationStarted()) {
-				// Cannot modify startup-time collection elements anymore (for stable iteration)
+				// 如果 bean 创建已经开始，不能再修改启动时的集合元素（为了稳定迭代）
 				synchronized (this.beanDefinitionMap) {
 					this.beanDefinitionMap.put(beanName, beanDefinition);
 					List<String> updatedDefinitions = new ArrayList<>(this.beanDefinitionNames.size() + 1);
@@ -1176,9 +1139,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 					this.beanDefinitionNames = updatedDefinitions;
 					removeManualSingletonName(beanName);
 				}
-			}
-			else {
-				// Still in startup registration phase
+			} else {
+				// 如果还在启动注册阶段
 				this.beanDefinitionMap.put(beanName, beanDefinition);
 				this.beanDefinitionNames.add(beanName);
 				removeManualSingletonName(beanName);
@@ -1188,8 +1150,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 		if (existingDefinition != null || containsSingleton(beanName)) {
 			resetBeanDefinition(beanName);
-		}
-		else if (isConfigurationFrozen()) {
+		} else if (isConfigurationFrozen()) {
 			clearByTypeCache();
 		}
 

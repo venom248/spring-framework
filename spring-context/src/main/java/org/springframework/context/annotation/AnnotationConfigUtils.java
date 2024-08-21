@@ -235,8 +235,7 @@ public abstract class AnnotationConfigUtils {
 		AnnotationAttributes lazy = attributesFor(metadata, Lazy.class);
 		if (lazy != null) {
 			abd.setLazyInit(lazy.getBoolean("value"));
-		}
-		else if (abd.getMetadata() != metadata) {
+		} else if (abd.getMetadata() != metadata) {
 			lazy = attributesFor(abd.getMetadata(), Lazy.class);
 			if (lazy != null) {
 				abd.setLazyInit(lazy.getBoolean("value"));
@@ -264,6 +263,13 @@ public abstract class AnnotationConfigUtils {
 		}
 	}
 
+	/**
+	 * 使用代理模式的作用域
+	 * @param metadata bean 的作用域
+	 * @param definition bean 的 BeanDefinition
+	 * @param registry bean 的 BeanDefinitionRegistry
+	 * @return 一个新的 BeanDefinitionHolder，如果不需要代理，则返回原始的 BeanDefinitionHolder
+	 */
 	static BeanDefinitionHolder applyScopedProxyMode(
 			ScopeMetadata metadata, BeanDefinitionHolder definition, BeanDefinitionRegistry registry) {
 

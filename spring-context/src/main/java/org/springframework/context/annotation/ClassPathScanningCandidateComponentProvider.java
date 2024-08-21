@@ -339,24 +339,23 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 
 
 	/**
-	 * Scan the component index or class path for candidate components.
-	 * @param basePackage the package to check for annotated classes
-	 * @return a corresponding Set of autodetected bean definitions
+	 * 扫描索引或类路径下的组件
+	 * @param basePackage 带注解类的包
+	 * @return bean-definition 的对应集合
 	 */
 	public Set<BeanDefinition> findCandidateComponents(String basePackage) {
+		// 判断是否可以使用组件索引
 		if (this.componentsIndex != null && indexSupportsIncludeFilters()) {
+			// 如果组件索引不为null且支持包含过滤器
 			return addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
-		}
-		else {
+		} else {
 			return scanCandidateComponents(basePackage);
 		}
 	}
 
 	/**
-	 * Determine if the component index can be used by this instance.
-	 * @return {@code true} if the index is available and the configuration of this
-	 * instance is supported by it, {@code false} otherwise
-	 * @since 5.0
+	 * 确定组件索引是否可以被此实例使用
+	 * @return 如果索引可用并且此实例的配置受其支持，则为 {@code true}，否则为 {@code false}
 	 */
 	private boolean indexSupportsIncludeFilters() {
 		for (TypeFilter includeFilter : this.includeFilters) {
@@ -459,6 +458,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 			boolean debugEnabled = logger.isDebugEnabled();
 			for (Resource resource : resources) {
 				String filename = resource.getFilename();
+				// 判断是否为CGLIB生成的代理类
 				if (filename != null && filename.contains(ClassUtils.CGLIB_CLASS_SEPARATOR)) {
 					// Ignore CGLIB-generated classes in the classpath
 					continue;
@@ -476,42 +476,35 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 								logger.debug("Identified candidate component class: " + resource);
 							}
 							candidates.add(sbd);
-						}
-						else {
+						} else {
 							if (debugEnabled) {
 								logger.debug("Ignored because not a concrete top-level class: " + resource);
 							}
 						}
-					}
-					else {
+					} else {
 						if (traceEnabled) {
 							logger.trace("Ignored because not matching any filter: " + resource);
 						}
 					}
-				}
-				catch (FileNotFoundException ex) {
+				} catch (FileNotFoundException ex) {
 					if (traceEnabled) {
 						logger.trace("Ignored non-readable " + resource + ": " + ex.getMessage());
 					}
-				}
-				catch (ClassFormatException ex) {
+				} catch (ClassFormatException ex) {
 					if (shouldIgnoreClassFormatException) {
 						if (debugEnabled) {
 							logger.debug("Ignored incompatible class format in " + resource + ": " + ex.getMessage());
 						}
-					}
-					else {
+					} else {
 						throw new BeanDefinitionStoreException("Incompatible class format in " + resource +
 								": set system property 'spring.classformat.ignore' to 'true' " +
 								"if you mean to ignore such files during classpath scanning", ex);
 					}
-				}
-				catch (Throwable ex) {
+				} catch (Throwable ex) {
 					throw new BeanDefinitionStoreException("Failed to read candidate component class: " + resource, ex);
 				}
 			}
-		}
-		catch (IOException ex) {
+		} catch (IOException ex) {
 			throw new BeanDefinitionStoreException("I/O failure during classpath scanning", ex);
 		}
 		return candidates;
@@ -531,8 +524,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	}
 
 	/**
-	 * Determine whether the given class does not match any exclude filter
-	 * and does match at least one include filter.
+	 * 确定给定的类是否与任何排除的过滤器都不匹配但至少与一个包含的过滤器匹配
 	 * @param metadataReader the ASM ClassReader for the class
 	 * @return whether the class qualifies as a candidate component
 	 */

@@ -34,10 +34,8 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * Convenient adapter for programmatic registration of bean classes.
- *
- * <p>This is an alternative to {@link ClassPathBeanDefinitionScanner}, applying
- * the same resolution of annotations but for explicitly registered classes only.
+ * 用于以编程方式注册 bean 类的便捷适配器。
+ * 这是 {@link ClassPathBeanDefinitionScanner} 的 替代方案，应用相同的注释解析，但仅适用于明确注册的类。
  *
  * @author Juergen Hoeller
  * @author Chris Beams
@@ -58,12 +56,10 @@ public class AnnotatedBeanDefinitionReader {
 
 
 	/**
-	 * Create a new {@code AnnotatedBeanDefinitionReader} for the given registry.
-	 * <p>If the registry is {@link EnvironmentCapable}, e.g. is an {@code ApplicationContext},
-	 * the {@link Environment} will be inherited, otherwise a new
-	 * {@link StandardEnvironment} will be created and used.
-	 * @param registry the {@code BeanFactory} to load bean definitions into,
-	 * in the form of a {@code BeanDefinitionRegistry}
+	 * 创建一个指定 BeanDefinitionRegistry 的 {@code AnnotatedBeanDefinitionReader}
+	 * <p>如果 registry 是 {@link EnvironmentCapable}，例如是 {@code ApplicationContext}，
+	 * 则将继承 {@link Environment}，否则将创建并使用一个新的 {@link StandardEnvironment}。
+	 * @param registry 要加载 bean 定义的 {@code BeanFactory}，以 {@code BeanDefinitionRegistry} 的形式
 	 * @see #AnnotatedBeanDefinitionReader(BeanDefinitionRegistry, Environment)
 	 * @see #setEnvironment(Environment)
 	 */
@@ -72,12 +68,9 @@ public class AnnotatedBeanDefinitionReader {
 	}
 
 	/**
-	 * Create a new {@code AnnotatedBeanDefinitionReader} for the given registry,
-	 * using the given {@link Environment}.
-	 * @param registry the {@code BeanFactory} to load bean definitions into,
-	 * in the form of a {@code BeanDefinitionRegistry}
-	 * @param environment the {@code Environment} to use when evaluating bean definition
-	 * profiles.
+	 * 创建一个指定 BeanDefinitionRegistry 的 {@code AnnotatedBeanDefinitionReader}，使用给定的 {@link Environment}。
+	 * @param registry 要加载 bean 定义的 {@code BeanFactory}，以 {@code BeanDefinitionRegistry} 的形式
+	 * @param environment 用于评估 bean 定义配置文件的 {@code Environment}
 	 * @since 3.1
 	 */
 	public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry, Environment environment) {
@@ -125,11 +118,9 @@ public class AnnotatedBeanDefinitionReader {
 
 
 	/**
-	 * Register one or more component classes to be processed.
-	 * <p>Calls to {@code register} are idempotent; adding the same
-	 * component class more than once has no additional effect.
-	 * @param componentClasses one or more component classes,
-	 * e.g. {@link Configuration @Configuration} classes
+	 * 注册一个或多个需要处理的 component
+	 * <p>对 {@code register} 的调用是幂等的；多次添加相同的 component 类不会产生额外效果。
+	 * @param componentClasses 一个或多个 component 类，例如 {@link Configuration @Configuration} 类
 	 */
 	public void register(Class<?>... componentClasses) {
 		for (Class<?> componentClass : componentClasses) {
@@ -138,32 +129,26 @@ public class AnnotatedBeanDefinitionReader {
 	}
 
 	/**
-	 * Register a bean from the given bean class, deriving its metadata from
-	 * class-declared annotations.
-	 * @param beanClass the class of the bean
+	 * 从给定的 bean 类中注册成 bean，从类声明的注释中获取其元数据。
+	 * @param beanClass bean 的类
 	 */
 	public void registerBean(Class<?> beanClass) {
 		doRegisterBean(beanClass, null, null, null, null);
 	}
 
 	/**
-	 * Register a bean from the given bean class, deriving its metadata from
-	 * class-declared annotations.
-	 * @param beanClass the class of the bean
-	 * @param name an explicit name for the bean
-	 * (or {@code null} for generating a default bean name)
-	 * @since 5.2
+	 * 从给定的 bean 类中注册成 bean，从类声明的注释中获取其元数据。
+	 * @param beanClass bean 的类
+	 * @param name bean 的显式名称（或 {@code null} 以生成默认 bean 名称）
 	 */
 	public void registerBean(Class<?> beanClass, @Nullable String name) {
 		doRegisterBean(beanClass, name, null, null, null);
 	}
 
 	/**
-	 * Register a bean from the given bean class, deriving its metadata from
-	 * class-declared annotations.
-	 * @param beanClass the class of the bean
-	 * @param qualifiers specific qualifier annotations to consider,
-	 * in addition to qualifiers at the bean class level
+	 * 从给定的 bean 类中注册成 bean，从类声明的注释中获取其元数据。
+	 * @param beanClass bean 的类
+	 * @param qualifiers 要考虑的特定限定符注释（如果有的话），除了 bean 类级别的限定符
 	 */
 	@SuppressWarnings("unchecked")
 	public void registerBean(Class<?> beanClass, Class<? extends Annotation>... qualifiers) {
@@ -171,13 +156,10 @@ public class AnnotatedBeanDefinitionReader {
 	}
 
 	/**
-	 * Register a bean from the given bean class, deriving its metadata from
-	 * class-declared annotations.
-	 * @param beanClass the class of the bean
-	 * @param name an explicit name for the bean
-	 * (or {@code null} for generating a default bean name)
-	 * @param qualifiers specific qualifier annotations to consider,
-	 * in addition to qualifiers at the bean class level
+	 * 从给定的 bean 类中注册成 bean，从类声明的注释中获取其元数据。
+	 * @param beanClass bean 的类
+	 * @param name bean 的显式名称（或 {@code null} 以生成默认 bean 名称）
+	 * @param qualifiers 要考虑的特定限定符注释（如果有的话），除了 bean 类级别的限定符
 	 */
 	@SuppressWarnings("unchecked")
 	public void registerBean(Class<?> beanClass, @Nullable String name,
@@ -187,43 +169,30 @@ public class AnnotatedBeanDefinitionReader {
 	}
 
 	/**
-	 * Register a bean from the given bean class, deriving its metadata from
-	 * class-declared annotations, using the given supplier for obtaining a new
-	 * instance (possibly declared as a lambda expression or method reference).
-	 * @param beanClass the class of the bean
-	 * @param supplier a callback for creating an instance of the bean
-	 * (may be {@code null})
-	 * @since 5.0
+	 * 从给定的 bean 类中注册成 bean，从类声明的注释中获取其元数据, 使用给定的供应商获取新实例（可能声明为 lambda 表达式或方法引用）。
+	 * @param beanClass bean 的类
+	 * @param supplier 创建 bean 实例的回调（可能为 {@code null}）
 	 */
 	public <T> void registerBean(Class<T> beanClass, @Nullable Supplier<T> supplier) {
 		doRegisterBean(beanClass, null, null, supplier, null);
 	}
 
 	/**
-	 * Register a bean from the given bean class, deriving its metadata from
-	 * class-declared annotations, using the given supplier for obtaining a new
-	 * instance (possibly declared as a lambda expression or method reference).
-	 * @param beanClass the class of the bean
-	 * @param name an explicit name for the bean
-	 * (or {@code null} for generating a default bean name)
-	 * @param supplier a callback for creating an instance of the bean
-	 * (may be {@code null})
-	 * @since 5.0
+	 * 从给定的 bean 类中注册成 bean，从类声明的注释中获取其元数据, 使用给定的供应商获取新实例（可能声明为 lambda 表达式或方法引用）。
+	 * @param beanClass bean 的类
+	 * @param name bean 的显式名称（或 {@code null} 以生成默认 bean 名称）
+	 * @param supplier 创建 bean 实例的回调（可能为 {@code null}）
 	 */
 	public <T> void registerBean(Class<T> beanClass, @Nullable String name, @Nullable Supplier<T> supplier) {
 		doRegisterBean(beanClass, name, null, supplier, null);
 	}
 
 	/**
-	 * Register a bean from the given bean class, deriving its metadata from
-	 * class-declared annotations.
-	 * @param beanClass the class of the bean
-	 * @param name an explicit name for the bean
-	 * (or {@code null} for generating a default bean name)
-	 * @param supplier a callback for creating an instance of the bean
-	 * (may be {@code null})
-	 * @param customizers one or more callbacks for customizing the factory's
-	 * {@link BeanDefinition}, e.g. setting a lazy-init or primary flag
+	 * 从给定的 bean 类中注册成 bean，从类声明的注释中获取其元数据。
+	 * @param beanClass bean 的类
+	 * @param name bean 的显式名称（或 {@code null} 以生成默认 bean 名称）
+	 * @param supplier 创建 bean 实例的回调（可能为 {@code null}）
+	 * @param customizers 一个或多个用于自定义工厂的 {@link BeanDefinition} 的回调，例如设置懒加载或主要标志
 	 * @since 5.2
 	 */
 	public <T> void registerBean(Class<T> beanClass, @Nullable String name, @Nullable Supplier<T> supplier,
@@ -233,62 +202,73 @@ public class AnnotatedBeanDefinitionReader {
 	}
 
 	/**
-	 * Register a bean from the given bean class, deriving its metadata from
-	 * class-declared annotations.
-	 * @param beanClass the class of the bean
-	 * @param name an explicit name for the bean
-	 * @param qualifiers specific qualifier annotations to consider, if any,
-	 * in addition to qualifiers at the bean class level
-	 * @param supplier a callback for creating an instance of the bean
-	 * (may be {@code null})
-	 * @param customizers one or more callbacks for customizing the factory's
-	 * {@link BeanDefinition}, e.g. setting a lazy-init or primary flag
+	 * 从给定的 bean 类中注册成 bean，从类声明的注释中获取其元数据。
+	 * @param beanClass bean 的类
+	 * @param name bean 的显式名称（或 {@code null} 以生成默认 bean 名称）
+	 * @param qualifiers 要考虑的特定限定符注释（如果有的话），除了 bean 类级别的限定符
+	 * @param supplier 创建 bean 实例的回调（可能为 {@code null}）
+	 * @param customizers 一个或多个用于自定义工厂的 {@link BeanDefinition} 的回调，例如设置懒加载或主要标志
 	 * @since 5.0
 	 */
 	private <T> void doRegisterBean(Class<T> beanClass, @Nullable String name,
 			@Nullable Class<? extends Annotation>[] qualifiers, @Nullable Supplier<T> supplier,
 			@Nullable BeanDefinitionCustomizer[] customizers) {
 
+		// 创建一个 AnnotatedGenericBeanDefinition(BeanDefinition) 对象，基于传入的 beanClass
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass);
+
+		// 判断这个 bean 是否应被跳过（基于条件注解）。如果应被跳过，直接返回。
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
 		}
 
+		// 设置 CANDIDATE_ATTRIBUTE 属性为 true，表示这个类是一个候选的配置类。
 		abd.setAttribute(ConfigurationClassUtils.CANDIDATE_ATTRIBUTE, Boolean.TRUE);
+		// 设置实例 supplier
 		abd.setInstanceSupplier(supplier);
+		// 解析并设置 bean 的作用域。
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
 		abd.setScope(scopeMetadata.getScopeName());
+		// 生成 bean 的名称。如果提供了 name，则使用提供的名称；否则，自动生成一个名称。
 		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
 
+		// 处理常见的注解（如 @Lazy, @Primary 等）。
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
+
+		// 如果提供了 qualifiers，处理这些限定符注解。
 		if (qualifiers != null) {
 			for (Class<? extends Annotation> qualifier : qualifiers) {
 				if (Primary.class == qualifier) {
-					abd.setPrimary(true);
+					abd.setPrimary(true); // 如果是 @Primary，设置为 primary。
 				}
 				else if (Lazy.class == qualifier) {
-					abd.setLazyInit(true);
+					abd.setLazyInit(true); // 如果是 @Lazy，设置为 lazy 初始化。
 				}
 				else {
+					// 其他情况，添加限定符。
 					abd.addQualifier(new AutowireCandidateQualifier(qualifier));
 				}
 			}
 		}
+
+		// 如果提供了 customizers，调用它们来定制 BeanDefinition。
 		if (customizers != null) {
 			for (BeanDefinitionCustomizer customizer : customizers) {
 				customizer.customize(abd);
 			}
 		}
 
+		// 创建一个 BeanDefinitionHolder 对象，持有 BeanDefinition 和 bean 的名称。
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
+		// 应用作用域代理模式（如果需要），并返回可能被代理过的 BeanDefinitionHolder
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
+		// 将 BeanDefinitionHolder 注册到 registry 中
 		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);
 	}
 
 
 	/**
-	 * Get the Environment from the given registry if possible, otherwise return a new
-	 * StandardEnvironment.
+	 * 如果可能的话，从给定的 registry 中获取 Environment，否则返回一个新的 StandardEnvironment。
 	 */
 	private static Environment getOrCreateEnvironment(BeanDefinitionRegistry registry) {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
